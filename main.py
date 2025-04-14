@@ -1,46 +1,24 @@
-
 from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
-# Liberar acesso de qualquer origem (CORS)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 @app.post("/consultar")
 async def consultar(request: Request):
-    data = await request.json()
-    consulta = data.get("pergunta", "").lower()
-
-    if "art. 209" in consulta:
-        return {
-            "resposta": """
-📘 Art. 209 do Código Penal Militar – Comando Premium de Revisão
-
-**Resumo Doutrinário:** O artigo trata do concurso de pessoas na prática de crime militar, abordando autoria, coautoria e participação, com base nos princípios da individualização da pena e da responsabilidade penal subjetiva.
-
-🧠 **Mapa Mental (Texto):**
-- Concurso de pessoas
-  - Coautoria: dois ou mais militares
-  - Participação: instigação, auxílio
-- Pena proporcional
-- Autonomia da conduta
-
-📝 **Questão Discursiva:**
-Analise o concurso de agentes no contexto militar, considerando a natureza da pena e a diferenciação entre autoria e participação.
-
-⚖️ **Jurisprudência:**
-STM, Apelação nº 700XXXXX, julgado em 2022 – reconhece que a coautoria exige unidade de desígnios e cooperação consciente para o resultado.
-
-⚠️ Não há divergência doutrinária relevante sobre esse ponto.
-"""
-        }
-
-    return {
-        "resposta": "❓ Tema não reconhecido. Por favor, envie um artigo ou tema específico do CPM."
-    }
+    try:
+        # Tentando ler o corpo da requisição como JSON
+        data = await request.json()
+        
+        # Verificando se a chave 'pergunta' está presente
+        consulta = data.get("pergunta", "").strip()
+        
+        if not consulta:
+            return JSONResponse(content={"error": "A pergunta não foi fornecida."}, status_code=400)
+        
+        if "art. 209" in consulta.lower():
+            return {"resposta": "📘 Art. 209 do CPM – Resumo completo, mapa mental, jurisprudência..."}
+        
+        return {"resposta": "❓ Tema não reconhecido."}
+    except Exception as e:
+        # Retorna o erro detalhado se houver algum problema na requisição
+        return JSONResponse(content={"error": str(e)}, status_code=400)
